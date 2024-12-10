@@ -1,8 +1,63 @@
-FROM docker.io/library/caddy:2.8.4-builder-alpine AS builder
+FROM docker.io/library/golang:1.23.4 AS builder
 
-RUN xcaddy build \
-    --with github.com/caddy-dns/cloudflare
+ARG CADDY_TAG="v2.8.4"
+ARG XCADDY_TAG="v0.4.4"
+ARG XCADDY_CHECKSUM="5ba32eec2388638cebbe1df861ea223c35074528af6a0424f07e436f07adce72"
+ARG CADDY_DIST_CHECKSUM="48dd0f59e33993a00e1262d0ebe9c06093f4c7cedb6a60c5799cb87eac06f5bf"
 
-FROM docker.io/library/caddy:2.8.4-alpine
+ADD --checksum=sha256:${XCADDY_CHECKSUM} https://github.com/caddyserver/xcaddy/archive/refs/tags/${XCADDY_TAG}.tar.gz xcaddy.tar.gz
+ADD --checksum=sha256:${CADDY_DIST_CHECKSUM} https://github.com/caddyserver/dist/archive/refs/tags/${CADDY_TAG}.tar.gz dist.tar.gz
+
+ENV CGO_ENABLED=0
+
+RUN mkdir -p xcaddy dist; \
+    tar --strip-components=1 -C xcaddy -xzf xcaddy.tar.gz; \
+    tar --strip-components=1 -C dist -xzf dist.tar.gz; \
+    rm xcaddy.tar.gz dist.tar.gz; \
+    cd xcaddy; \
+    go run cmd/xcaddy/main.go build ${CADDY_TAG} \
+        --with github.com/caddy-dns/cloudflare \
+        --output /usr/bin/caddy
+
+FROM cgr.dev/chainguard/wolfi-base:latest
+
+ARG CADDY_TAG
+
+RUN apk add --no-cache \
+	ca-certificates \
+	libcap \
+	mailcap
+
+RUN set -eux; \
+	mkdir -p \
+		/config/caddy \
+		/data/caddy \
+		/etc/caddy \
+		/usr/share/caddy
+
+ENV CADDY_VERSION=${CADDY_TAG}
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY --from=builder /go/dist/config/Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /go/dist/welcome/index.html /usr/share/caddy/index.html
+
+ENV XDG_CONFIG_HOME=/config
+ENV XDG_DATA_HOME=/data
+
+LABEL org.opencontainers.image.version=${CADDY_TAG}
+LABEL org.opencontainers.image.title=Caddy
+LABEL org.opencontainers.image.description="a powerful, enterprise-ready, open source web server with automatic HTTPS written in Go"
+LABEL org.opencontainers.image.url=https://caddyserver.com
+LABEL org.opencontainers.image.documentation=https://caddyserver.com/docs
+LABEL org.opencontainers.image.vendor="Caleb Xu"
+LABEL org.opencontainers.image.licenses=Apache-2.0
+LABEL org.opencontainers.image.source="https://github.com/alebcay/container-images"
+
+EXPOSE 80
+EXPOSE 443
+EXPOSE 443/udp
+EXPOSE 2019
+
+WORKDIR /srv
+
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
