@@ -10,12 +10,12 @@ ADD --checksum=sha256:${CADDY_DIST_CHECKSUM} https://github.com/caddyserver/dist
 
 ENV CGO_ENABLED=0
 
-RUN mkdir -p xcaddy dist; \
-    tar --strip-components=1 -C xcaddy -xzf xcaddy.tar.gz; \
-    tar --strip-components=1 -C dist -xzf dist.tar.gz; \
-    rm xcaddy.tar.gz dist.tar.gz; \
-    cd xcaddy; \
-    go run cmd/xcaddy/main.go build ${CADDY_TAG} \
+RUN mkdir -p xcaddy dist \
+    && tar --strip-components=1 -C xcaddy -xzf xcaddy.tar.gz \
+    && tar --strip-components=1 -C dist -xzf dist.tar.gz \
+    && rm xcaddy.tar.gz dist.tar.gz \
+    && cd xcaddy \
+    && go run cmd/xcaddy/main.go build ${CADDY_TAG} \
         --with github.com/caddy-dns/cloudflare \
         --output /usr/bin/caddy
 
@@ -24,16 +24,15 @@ FROM cgr.dev/chainguard/wolfi-base:latest
 ARG CADDY_TAG
 
 RUN apk add --no-cache \
-	ca-certificates \
-	libcap \
-	mailcap
+    ca-certificates \
+    libcap \
+    mailcap
 
-RUN set -eux; \
-	mkdir -p \
-		/config/caddy \
-		/data/caddy \
-		/etc/caddy \
-		/usr/share/caddy
+RUN mkdir -p \
+        /config/caddy \
+        /data/caddy \
+        /etc/caddy \
+        /usr/share/caddy
 
 ENV CADDY_VERSION=${CADDY_TAG}
 
