@@ -53,7 +53,7 @@ RUN apk add --no-cache \
     && cd / \
     && rm -rf /build-meek \
     && cd /build-lyrebird \
-    && go build -o /usr/bin/lyrebird -trimpath -ldflags='-s -w -X main.lyrebirdVersion=${LYREBIRD_VERSION}' ./cmd/lyrebird \
+    && go build -o /usr/bin/lyrebird -trimpath -ldflags="-s -w -X main.lyrebirdVersion=${LYREBIRD_VERSION}" ./cmd/lyrebird \
     && cd / \
     && rm -rf /build-lyrebird \
     && go clean -cache -fuzzcache -modcache -testcache \
