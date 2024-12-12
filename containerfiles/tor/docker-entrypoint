@@ -42,7 +42,7 @@ fi
 
 printf "\n========================================================\n"
 # Display OS version, Tor version & torrc in log
-printf "Alpine Version: \c" && cat /etc/alpine-release
+printf "%s %s\n" "$(grep PRETTY_NAME /etc/os-release | awk -F '=' '{print $2}' | sed 's/\"//g')" "$(grep VERSION_ID /etc/os-release | awk -F '=' '{print $2}' | sed 's/\"//g')"
 tor --version
 lyrebird -version
 cat /etc/tor/torrc
