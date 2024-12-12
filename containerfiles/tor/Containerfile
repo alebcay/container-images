@@ -1,0 +1,96 @@
+FROM cgr.dev/chainguard/wolfi-base:latest
+
+ARG TOR_VERSION="0.4.8.13"
+ARG TOR_CHECKSUM="9baf26c387a2820b3942da572146e6eb77c2bc66862af6297cd02a074e6fba28"
+
+ARG MEEK_VERSION="v0.38.0"
+ARG MEEK_CHECKSUM="63e8aef2828e7d0cc1dc5823fe82f9ae1e59cfc8c8dc118faab0a673c51ff257"
+
+ARG LYREBIRD_VERSION="0.5.0"
+ARG LYREBIRD_CHECKSUM="1f8ed5fcb9549f69200629c8c51f4df2b112061fdf482a474995f0c83e02c6a7"
+
+ENV CGO_ENABLED=0 \
+    TOR_USER=tord \
+    TOR_NICKNAME=Tor4
+
+RUN apk add --no-cache \
+        ca-certificates \
+        curl \
+        gcc \
+        go \
+        libcap-dev \
+        libevent-dev \
+        libseccomp-dev \
+        openssl-dev \
+        xz-dev \
+        zlib-dev \
+        zstd-dev \
+    && curl -L -o tor.tar.gz https://dist.torproject.org/tor-${TOR_VERSION}.tar.gz \
+    && curl -L -o meek.tar.gz https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/meek/-/archive/${MEEK_VERSION}/meek-${MEEK_VERSION}.tar.gz \
+    && curl -L -o lyrebird.tar.gz https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/-/archive/lyrebird-${LYREBIRD_VERSION}/lyrebird-lyrebird-${LYREBIRD_VERSION}.tar.gz \
+    && printf "%s tor.tar.gz" "${TOR_CHECKSUM}" | sha256sum -c - \
+    && printf "%s meek.tar.gz" "${MEEK_CHECKSUM}" | sha256sum -c - \
+    && printf "%s lyrebird.tar.gz" "${LYREBIRD_CHECKSUM}" | sha256sum -c - \
+    && mkdir -p /build-tor /build-meek /build-lyrebird \
+    && tar -xzf tor.tar.gz -C /build-tor --strip-components=1 \
+    && tar -xzf meek.tar.gz -C /build-meek --strip-components=1 \
+    && tar -xzf lyrebird.tar.gz -C /build-lyrebird --strip-components=1 \
+    && rm tor.tar.gz meek.tar.gz lyrebird.tar.gz \
+    && cd /build-tor \
+    && ./configure \
+        --prefix=/usr \
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --mandir=/usr/share/man \
+        --enable-gpl \
+        --disable-html-manual \
+    && make -j$(nproc) \
+    && make install \
+    && cd / \
+    && rm -rf /build-tor \
+    && cd /build-meek \
+    && go build -o /usr/bin/meek-server -trimpath -ldflags='-s -w' ./meek-server \
+    && cd / \
+    && rm -rf /build-meek \
+    && cd /build-lyrebird \
+    && go build -o /usr/bin/lyrebird -trimpath -ldflags='-s -w -X main.lyrebirdVersion=${LYREBIRD_VERSION}' ./cmd/lyrebird \
+    && cd / \
+    && rm -rf /build-lyrebird \
+    && go clean -cache -fuzzcache -modcache -testcache \
+    && apk del --no-cache --purge \
+        curl \
+        gcc \
+        go \
+        libcap-dev \
+        libevent-dev \
+        libseccomp-dev \
+        make \
+        openssl-dev \
+        xz-dev \
+        zlib-dev \
+        zstd-dev \
+    && apk add --no-cache \
+        libcap \
+        libevent \
+        libseccomp \
+        libzstd1 \
+        openssl \
+        pwgen \
+        xz \
+        zlib \
+    && addgroup -g 101 -S ${TOR_USER} \
+    && adduser -u 100 -G ${TOR_USER} -S ${TOR_USER}
+
+COPY ./torrc /etc/tor/torrc
+COPY ./docker-entrypoint /usr/local/bin/docker-entrypoint
+
+USER tord:tord
+
+# Persist data
+VOLUME /etc/tor /var/lib/tor /tor-config-done
+
+# ORPort, DirPort, SocksPort, ObfsproxyPort, MeekPort
+EXPOSE 9001 9030 9050 54444 7002
+
+ENTRYPOINT ["docker-entrypoint"]
+CMD ["tor", "-f", "/etc/tor/torrc"]
