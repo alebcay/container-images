@@ -1,12 +1,12 @@
 FROM docker.io/library/golang:1.23.4 AS builder
 
-ARG CADDY_TAG="v2.8.4"
+ARG CADDY_TAG="v2.9.1"
 ARG XCADDY_TAG="v0.4.4"
+ARG CADDY_DIST_CHECKSUM="b3763e0397ef71bba7e389144b3de79ba61378a60fbcec2f564966f1851299dc"
 ARG XCADDY_CHECKSUM="5ba32eec2388638cebbe1df861ea223c35074528af6a0424f07e436f07adce72"
-ARG CADDY_DIST_CHECKSUM="48dd0f59e33993a00e1262d0ebe9c06093f4c7cedb6a60c5799cb87eac06f5bf"
 
-ADD --checksum=sha256:${XCADDY_CHECKSUM} https://github.com/caddyserver/xcaddy/archive/refs/tags/${XCADDY_TAG}.tar.gz xcaddy.tar.gz
 ADD --checksum=sha256:${CADDY_DIST_CHECKSUM} https://github.com/caddyserver/dist/archive/refs/tags/${CADDY_TAG}.tar.gz dist.tar.gz
+ADD --checksum=sha256:${XCADDY_CHECKSUM} https://github.com/caddyserver/xcaddy/archive/refs/tags/${XCADDY_TAG}.tar.gz xcaddy.tar.gz
 
 ENV CGO_ENABLED=0
 
