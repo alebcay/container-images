@@ -34,7 +34,7 @@ jobs:
         run: echo "tag=$(tr -d '\n' < "containerfiles/${image_name}/VERSION")" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push container image
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
+        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6.14.0
         with:
           context: containerfiles/${{ github.event.inputs.image_name }}
           file: containerfiles/${{ github.event.inputs.image_name }}/Containerfile
