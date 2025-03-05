@@ -1,0 +1,63 @@
+FROM cgr.dev/chainguard/wolfi-base:latest
+
+ARG MARIADB_VERSION="11.4"
+ARG PYTHON_VERSION="3.13"
+ARG RUST_VERSION="1.85"
+
+ARG SYNCSTORAGE_RS_VERSION="0.18.2"
+ARG SYNCSTORAGE_RS_COMMIT="1107eb4fa58141af89ee1a82def73f6f1f377b38"
+ARG SYNCSTORAGE_RS_CHECKSUM="901c3ef6296ba36300f44d56317769c81c87f756ab0f8e5c2ebb7049135a5f4c"
+
+COPY entrypoint.sh /app/bin/entrypoint.sh
+
+RUN chmod +x /app/bin/entrypoint.sh \
+    && addgroup -g 1000 syncstorage \
+    && adduser -D -u 1000 -h /app -G syncstorage syncstorage \
+    && apk add --no-cache --virtual .build-deps \
+        curl \
+        gcc \
+        glibc-dev \
+        mariadb-connector-c-dev \
+        openssl-dev \
+        pkgconf \
+        python-${PYTHON_VERSION}-dev \
+        rust-${RUST_VERSION} \
+        yq \
+    && apk add --no-cache \
+        bash \
+        libcrypto3 \
+        libgcc \
+        libssl3 \
+        mariadb-${MARIADB_VERSION}-client \
+        mariadb-connector-c \
+        python-${PYTHON_VERSION} \
+    && curl -L -o syncstorage-rs.tar.gz https://github.com/mozilla-services/syncstorage-rs/archive/refs/tags/${SYNCSTORAGE_RS_VERSION}.tar.gz \
+    && printf "%s syncstorage-rs.tar.gz" "${SYNCSTORAGE_RS_CHECKSUM}" | sha256sum -c - \
+    && mkdir -p /build-syncstorage-rs \
+    && tar -xzf syncstorage-rs.tar.gz -C /build-syncstorage-rs --strip-components=1 \
+    && rm syncstorage-rs.tar.gz \
+    && cd /build-syncstorage-rs \
+    && yq -i -P ".version=\"${SYNCSTORAGE_RS_VERSION}\"" syncserver/version.json -o json \
+    && yq -i -P ".commit=\"${SYNCSTORAGE_RS_COMMIT}\"" syncserver/version.json -o json \
+    && cargo install --path ./syncserver --no-default-features --features=syncstorage-db/mysql --features=py_verifier --locked --root /app \
+    && cargo install diesel_cli --no-default-features --features=mysql --root /app \
+    && python3 -m ensurepip \
+    && python3 -m pip install -r requirements.txt \
+    && python3 -m pip install -r tools/integration_tests/requirements.txt \
+    && python3 -m pip install -r tools/tokenserver/requirements.txt \
+    && mkdir -p /app/tools /app/scripts \
+    && cp syncserver/version.json /app \
+    && cp -r tools/spanner /app/tools/spanner \
+    && cp -r tools/integration_tests /app/tools/integration_tests \
+    && cp -r tools/tokenserver /app/tools/tokenserver \
+    && cp scripts/prepare-spanner.sh /app/scripts/prepare-spanner.sh \
+    && cp scripts/start_mock_fxa_server.sh /app/scripts/start_mock_fxa_server.sh \
+    && cp syncstorage-spanner/src/schema.ddl /app/schema.ddl \
+    && chmod +x /app/scripts/prepare-spanner.sh \
+    && cd / \
+    && apk del --no-cache --purge .build-deps \
+    && rm -rf /build-syncstorage-rs /root/.cache /root/.cargo
+
+USER syncstorage:syncstorage
+WORKDIR /app
+ENTRYPOINT ["/app/bin/entrypoint.sh"]
