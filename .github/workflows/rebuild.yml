@@ -40,6 +40,6 @@ jobs:
         with:
           context: containerfiles/${{ github.event.inputs.image_name }}
           file: containerfiles/${{ github.event.inputs.image_name }}/Containerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.event.inputs.image_name }}:${{ steps.get-tag.outputs.tag }}

@@ -68,6 +68,6 @@ jobs:
         with:
           context: containerfiles/${{ matrix.files }}
           file: containerfiles/${{ matrix.files }}/Containerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: ${{ env.REGISTRY }}/${{ matrix.files }}:${{ steps.get-tag.outputs.tag }}
