@@ -45,11 +45,13 @@ RUN chmod +x /app/bin/entrypoint.sh \
     && python3 -m pip install -r requirements.txt \
     && python3 -m pip install -r tools/integration_tests/requirements.txt \
     && python3 -m pip install -r tools/tokenserver/requirements.txt \
-    && mkdir -p /app/tools /app/scripts \
+    && mkdir -p /app/tools /app/scripts /app/migrations \
     && cp syncserver/version.json /app \
     && cp -r tools/spanner /app/tools/spanner \
     && cp -r tools/integration_tests /app/tools/integration_tests \
     && cp -r tools/tokenserver /app/tools/tokenserver \
+    && cp -r syncstorage-mysql/migrations /app/migrations/syncstorage-mysql \
+    && cp -r tokenserver-db/migrations /app/migrations/tokenserver-db \
     && cp scripts/prepare-spanner.sh /app/scripts/prepare-spanner.sh \
     && cp scripts/start_mock_fxa_server.sh /app/scripts/start_mock_fxa_server.sh \
     && cp syncstorage-spanner/src/schema.ddl /app/schema.ddl \
