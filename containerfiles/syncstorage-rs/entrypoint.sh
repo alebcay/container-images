@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -euo pipefail
+
+# The MariaDB service may indicate that it is up before it is actually ready to accept connections, so wait a bit
+sleep 5
+
 # First run all migrations
 /app/bin/diesel --database-url "${SYNC_SYNCSTORAGE_DATABASE_URL}" migration --migration-dir /app/migrations/syncstorage-mysql run
 /app/bin/diesel --database-url "${SYNC_TOKENSERVER_DATABASE_URL}" migration --migration-dir /app/migrations/tokenserver-db run
