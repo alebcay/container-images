@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # First run all migrations
-/app/bin/diesel --database-url "${SYNC_SYNCSTORAGE_DATABASE_URL}" migration --migration-dir syncstorage-mysql/migrations run
-/app/bin/diesel --database-url "${SYNC_TOKENSERVER_DATABASE_URL}" migration --migration-dir tokenserver-db/migrations run
+/app/bin/diesel --database-url "${SYNC_SYNCSTORAGE_DATABASE_URL}" migration --migration-dir /app/migrations/syncstorage-mysql run
+/app/bin/diesel --database-url "${SYNC_TOKENSERVER_DATABASE_URL}" migration --migration-dir /app/migrations/tokenserver-db run
 
 # Parse token server database URL
 proto="$(echo "$SYNC_TOKENSERVER_DATABASE_URL" | grep :// | sed -e's,^\(.*://\).*,\1,g')"
@@ -16,7 +16,7 @@ host="$(echo "${host/:$port/}" | cut -d/ -f1)"
 db="$(echo "$url" | grep / | cut -d/ -f2-)"
 
 # Create service and node if they doesnt exist
-mariadb "$db" -h "$host" -P "$port" -u "$user" -p "$pass" <<EOF
+mariadb "$db" -h "$host" -P "$port" -u "$user" -p"$pass" <<EOF
 DELETE FROM services;
 INSERT INTO services (id, service, pattern) VALUES
     (1, "sync-1.5", "{node}/1.5/{uid}");
@@ -26,7 +26,7 @@ INSERT INTO nodes (id, service, node, capacity, available, current_load, downed,
 EOF
 
 # Write config file
-cat > /config/local.toml <<EOF
+cat << EOF > /config/local.toml
 master_secret = "${SYNC_MASTER_SECRET}"
 
 human_logs = 1
