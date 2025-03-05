@@ -1,6 +1,6 @@
 FROM cgr.dev/chainguard/wolfi-base:latest
 
-ARG MARIADB_VERSION="10.6"
+ARG MARIADB_VERSION="11.4"
 ARG PYTHON_VERSION="3.13"
 ARG RUST_VERSION="1.85"
 
