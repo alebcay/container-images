@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.23.4 AS builder
+FROM docker.io/library/golang:1.24.1 AS builder
 
 ARG CADDY_TAG="v2.9.1"
 ARG XCADDY_TAG="v0.4.4"
