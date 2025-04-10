@@ -17,6 +17,7 @@ RUN mkdir -p xcaddy dist \
     && cd xcaddy \
     && go run cmd/xcaddy/main.go build ${CADDY_TAG} \
         --with github.com/caddy-dns/cloudflare \
+        --with github.com/sagikazarmark/caddy-fs-s3 \
         --output /usr/bin/caddy
 
 FROM cgr.dev/chainguard/wolfi-base:latest
