@@ -1,8 +1,8 @@
-FROM docker.io/library/golang:1.24.1 AS builder
+FROM docker.io/library/golang:1.24.3 AS builder
 
-ARG CADDY_TAG="v2.9.1"
+ARG CADDY_TAG="v2.10.0"
 ARG XCADDY_TAG="v0.4.4"
-ARG CADDY_DIST_CHECKSUM="b3763e0397ef71bba7e389144b3de79ba61378a60fbcec2f564966f1851299dc"
+ARG CADDY_DIST_CHECKSUM="ea08effd19405a195c01c0acf4f1aef753cfc3031584d3649ef3562b530bfe12"
 ARG XCADDY_CHECKSUM="5ba32eec2388638cebbe1df861ea223c35074528af6a0424f07e436f07adce72"
 
 ADD --checksum=sha256:${CADDY_DIST_CHECKSUM} https://github.com/caddyserver/dist/archive/refs/tags/${CADDY_TAG}.tar.gz dist.tar.gz
