@@ -45,9 +45,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
-
       - name: Get container image tags
         id: get-tag
         env:
@@ -55,10 +52,9 @@ jobs:
         run: echo "tag=$(tr -d '\n' < "containerfiles/${image_name}/VERSION")" >> "${GITHUB_OUTPUT}"
 
       - name: Build container image
-        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
         with:
           context: containerfiles/${{ matrix.files }}
-          file: containerfiles/${{ matrix.files }}/Containerfile
+          containerfiles: containerfiles/${{ matrix.files }}/Containerfile
           platforms: linux/amd64
-          push: false
           tags: ${{ env.REGISTRY }}/${{ matrix.files }}:${{ steps.get-tag.outputs.tag }}
