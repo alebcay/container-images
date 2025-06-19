@@ -1,16 +1,17 @@
-FROM docker.io/library/golang:1.24.3 AS builder
+FROM docker.io/library/golang:1.24.4 AS builder
 
 ARG CADDY_TAG="v2.10.0"
 ARG XCADDY_TAG="v0.4.4"
 ARG CADDY_DIST_CHECKSUM="ea08effd19405a195c01c0acf4f1aef753cfc3031584d3649ef3562b530bfe12"
 ARG XCADDY_CHECKSUM="5ba32eec2388638cebbe1df861ea223c35074528af6a0424f07e436f07adce72"
 
-ADD --checksum=sha256:${CADDY_DIST_CHECKSUM} https://github.com/caddyserver/dist/archive/refs/tags/${CADDY_TAG}.tar.gz dist.tar.gz
-ADD --checksum=sha256:${XCADDY_CHECKSUM} https://github.com/caddyserver/xcaddy/archive/refs/tags/${XCADDY_TAG}.tar.gz xcaddy.tar.gz
-
 ENV CGO_ENABLED=0
 
-RUN mkdir -p xcaddy dist \
+RUN curl -L -o dist.tar.gz https://github.com/caddyserver/dist/archive/refs/tags/${CADDY_TAG}.tar.gz \
+    && curl -L -o xcaddy.tar.gz https://github.com/caddyserver/xcaddy/archive/refs/tags/${XCADDY_TAG}.tar.gz \
+    && printf "%s dist.tar.gz" "${CADDY_DIST_CHECKSUM}" | sha256sum -c - \
+    && printf "%s xcaddy.tar.gz" "${XCADDY_CHECKSUM}" | sha256sum -c - \
+    && mkdir -p xcaddy dist \
     && tar --strip-components=1 -C xcaddy -xzf xcaddy.tar.gz \
     && tar --strip-components=1 -C dist -xzf dist.tar.gz \
     && rm xcaddy.tar.gz dist.tar.gz \
