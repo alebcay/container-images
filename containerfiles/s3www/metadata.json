@@ -1,0 +1,11 @@
+{
+    "name": "s3www",
+    "version": "1.0.0",
+    "strategy": "remote",
+    "repo": {
+        "url": "https://github.com/alebcay/s3www.git",
+        "commit": "db3c9022b8ddb182e4855c299824edfa8e90e479",
+        "context": ".",
+        "containerfile": "./Dockerfile"
+    }
+}

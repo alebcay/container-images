@@ -45,16 +45,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Get container image tags
-        id: get-tag
+      - name: Build container image
         env:
           image_name: ${{ matrix.files }}
-        run: echo "tag=$(tr -d '\n' < "containerfiles/${image_name}/VERSION")" >> "${GITHUB_OUTPUT}"
-
-      - name: Build container image
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
-        with:
-          context: containerfiles/${{ matrix.files }}
-          containerfiles: containerfiles/${{ matrix.files }}/Containerfile
-          platforms: linux/amd64
-          tags: ${{ env.REGISTRY }}/${{ matrix.files }}:${{ steps.get-tag.outputs.tag }}
+        run: |
+          ./scripts/build-image.sh "${REGISTRY}" "containerfiles/${image_name}"

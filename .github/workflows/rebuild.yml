@@ -19,23 +19,21 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Get container image tags
-        id: get-tag
-        env:
-          image_name: ${{ github.event.inputs.image_name }}
-        run: echo "tag=$(tr -d '\n' < "containerfiles/${image_name}/VERSION")" >> "${GITHUB_OUTPUT}"
-
-      - name: Build container image
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
+      - name: Log in to registry
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
         with:
-          context: containerfiles/${{ github.event.inputs.image_name }}
-          containerfiles: containerfiles/${{ github.event.inputs.image_name }}/Containerfile
-          platforms: linux/amd64
-          tags: ${{ env.REGISTRY }}/${{ github.event.inputs.image_name }}:${{ steps.get-tag.outputs.tag }}
-
-      - name: Push container image
-        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
-        with:
-          tags: ${{ env.REGISTRY }}/${{ github.event.inputs.image_name }}:${{ steps.get-tag.outputs.tag }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
+          registry: ${{ env.REGISTRY }}
+
+      - name: Build container image
+        env:
+          image_name: ${{ github.event.inputs.image_name }}
+        run: |
+          ./scripts/build-image.sh "${REGISTRY}" "containerfiles/${image_name}"
+
+      - name: Push container image
+        env:
+            image_name: ${{ github.event.inputs.image_name }}
+        run: |
+          ./scripts/push-image.sh "${REGISTRY}" "containerfiles/${image_name}"

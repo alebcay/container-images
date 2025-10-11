@@ -1,0 +1,5 @@
+{
+    "name": "caddy-cloudflare",
+    "version": "2.10.2",
+    "strategy": "local"
+}
