@@ -8,4 +8,4 @@ cd "${workdir}" || exit
 name="$(jq --raw-output '.name' < metadata.json)"
 version="$(jq --raw-output '.version' < metadata.json)"
 
-podman push "${registry}/${name}:${version}"
+podman push --compression-format=zstd --compression-level=10 "${registry}/${name}:${version}"
