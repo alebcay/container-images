@@ -1,0 +1,33 @@
+FROM cgr.dev/chainguard/wolfi-base:latest
+
+ARG CHRONY_VERSION="4.8"
+ARG CHRONY_DIST_CHECKSUM="33ea8eb2a4daeaa506e8fcafd5d6d89027ed6f2f0609645c6f149b560d301706"
+
+RUN apk add --no-cache curl clang make pkgconf gnutls-dev nettle-dev libcap-dev libseccomp-dev \
+    && curl -L -o dist.tar.gz https://chrony-project.org/releases/chrony-${CHRONY_VERSION}.tar.gz \
+    && printf "%s dist.tar.gz" "${CHRONY_DIST_CHECKSUM}" | sha256sum -c - \
+    && mkdir -p dist \
+    && tar --strip-components=1 -C dist -xzf dist.tar.gz \
+    && rm dist.tar.gz \
+    && cd dist \
+    && CC=clang ./configure --enable-scfilter --sysconfdir=/etc/chrony --prefix=/opt/chrony \
+    && make install
+
+FROM cgr.dev/chainguard/wolfi-base:latest
+
+LABEL org.opencontainers.image.authors="Caleb Xu <calebcenter@live.com>" \
+      org.opencontainers.image.documentation=https://github.com/alebcay/container-images
+
+ENV NTP_DIRECTIVES="ratelimit\nrtcsync"
+
+RUN apk add --no-cache tzdata nettle gnutls libcap libseccomp && \
+    mkdir -p /etc/chrony /run/chrony /var/lib/chrony /var/run/chrony && \
+    addgroup -S chrony && adduser -S chrony -G chrony && \
+    chown -R chrony:chrony /etc/chrony /run/chrony /var/lib/chrony /var/run/chrony && \
+    chmod 1750 /etc/chrony /run/chrony /var/lib/chrony /var/run/chrony
+
+COPY --chmod=0755 startup.sh /bin/startup
+COPY --from=0 /opt/chrony /opt/chrony
+
+USER chrony:chrony
+ENTRYPOINT [ "/bin/startup" ]
