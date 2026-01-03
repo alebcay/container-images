@@ -1,0 +1,5 @@
+{
+    "name": "chrony",
+    "version": "4.8",
+    "strategy": "local"
+}
