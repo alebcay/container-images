@@ -23,6 +23,9 @@ if [ "${strategy}" = "remote" ]; then
 fi
 
 argfile="$(dirname "${containerfile}")/argfile.conf"
-argfile_arg="$(test -e "${argfile}" && printf "%s" "--build-arg-file=${argfile}")"
 
-buildah bud "${argfile_arg}" --file "${containerfile}" --format oci --tag "${registry}/${name}:${version}" "${context}"
+if [ -f "${argfile}" ]; then
+    buildah bud --build-arg-file "${argfile}" --file "${containerfile}" --format oci --tag "${registry}/${name}:${version}" "${context}"
+else
+    buildah bud --file "${containerfile}" --format oci --tag "${registry}/${name}:${version}" "${context}"
+fi
