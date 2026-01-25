@@ -1,7 +1,7 @@
 FROM cgr.dev/chainguard/wolfi-base:latest
 
-ARG CHRONY_VERSION="4.8"
-ARG CHRONY_DIST_CHECKSUM="33ea8eb2a4daeaa506e8fcafd5d6d89027ed6f2f0609645c6f149b560d301706"
+ARG CHRONY_VERSION
+ARG CHRONY_DIST_CHECKSUM
 
 RUN apk add --no-cache curl clang make pkgconf gnutls-dev nettle-dev libcap-dev libseccomp-dev \
     && curl -L -o dist.tar.gz https://chrony-project.org/releases/chrony-${CHRONY_VERSION}.tar.gz \
