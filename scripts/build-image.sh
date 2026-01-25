@@ -22,4 +22,7 @@ if [ "${strategy}" = "remote" ]; then
     git checkout "${commit}"
 fi
 
-buildah bud --file "${containerfile}" --format oci --tag "${registry}/${name}:${version}" "${context}"
+argfile="$(dirname "${containerfile}")/argfile.conf"
+argfile_arg="$(test -e "${argfile}" && printf "%s" "--build-arg-file=${argfile}")"
+
+buildah bud "${argfile_arg}" --file "${containerfile}" --format oci --tag "${registry}/${name}:${version}" "${context}"
