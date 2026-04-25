@@ -1,6 +1,8 @@
 #!/bin/sh
 
 cat "/rclone.conf.in" | \
+  sed "s/@PROVIDER@/${PROVIDER}/g" | \
+  sed "s/@ACL@/${ACL}/g" | \
   sed "s/@ACCESS_KEY_ID@/${ACCESS_KEY_ID}/g" | \
   sed "s/@SECRET_ACCESS_KEY@/${SECRET_ACCESS_KEY}/g" | \
   sed "s/@REGION_ENDPOINT@/${REGION_ENDPOINT}/g" > "/tmp/rclone.conf"
