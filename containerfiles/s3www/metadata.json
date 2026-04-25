@@ -4,7 +4,7 @@
     "strategy": "remote",
     "repo": {
         "url": "https://github.com/alebcay/s3www.git",
-        "commit": "011f20cbc6722b5119f0f15640da5c07c7580066",
+        "commit": "b1f75b3ba0fa990e541bf31defb1ce591d348af0",
         "context": ".",
         "containerfile": "./Dockerfile"
     }
