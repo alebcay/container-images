@@ -1,5 +1,5 @@
 {
     "name": "rclone-mirror-updater",
-    "version": "1.73.5",
+    "version": "1.74.1",
     "strategy": "local"
 }
