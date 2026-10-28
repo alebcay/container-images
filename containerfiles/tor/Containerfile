@@ -21,13 +21,14 @@ RUN apk add --no-cache \
         libcap-dev \
         libevent-dev \
         libseccomp-dev \
+        make \
         openssl-dev \
         xz-dev \
         zlib-dev \
         zstd-dev \
     && curl -L -o tor.tar.gz https://dist.torproject.org/tor-${TOR_VERSION}.tar.gz \
     && curl -L -o meek.tar.gz https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/meek/-/archive/${MEEK_VERSION}/meek-${MEEK_VERSION}.tar.gz \
-    && curl -L -o lyrebird.tar.gz https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/-/archive/lyrebird-${LYREBIRD_VERSION}/lyrebird-lyrebird-${LYREBIRD_VERSION}.tar.gz \
+    && curl -L -o lyrebird.tar.gz https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird/-/archive/${LYREBIRD_VERSION}/lyrebird-${LYREBIRD_VERSION}.tar.gz \
     && printf "%s tor.tar.gz" "${TOR_CHECKSUM}" | sha256sum -c - \
     && printf "%s meek.tar.gz" "${MEEK_CHECKSUM}" | sha256sum -c - \
     && printf "%s lyrebird.tar.gz" "${LYREBIRD_CHECKSUM}" | sha256sum -c - \
@@ -44,6 +45,7 @@ RUN apk add --no-cache \
         --mandir=/usr/share/man \
         --enable-gpl \
         --disable-html-manual \
+        --disable-dependency-tracking \
     && make -j$(nproc) \
     && make install \
     && cd / \
